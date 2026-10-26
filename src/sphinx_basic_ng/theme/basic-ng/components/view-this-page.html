@@ -1,9 +1,9 @@
 {%- macro sanitise_trailing_slash(s) -%}{{ s.rstrip("/") }}{%- endmacro -%}
 
 {%- macro determine_page_view_link() -%}
-  {%- if theme_source_view_link -%}
+  {%- if theme_source_view_link and pagename and page_source_suffix -%}
     {{ theme_source_view_link.format(filename=pagename+page_source_suffix) }}
-  {%- elif theme_source_repository -%}
+  {%- elif theme_source_repository and theme_source_branch and page_source_suffix -%}
     {#- First, sanitise the trailing slashes. -#}
     {%- set repo = sanitise_trailing_slash(theme_source_repository) -%}
     {%- set branch = theme_source_branch -%}
@@ -40,23 +40,21 @@
         "You should set `source_view_link`, so that the view link is presented."
       ) }}
     {%- endif -%}
-  {%- elif show_source and has_source -%}
+  {%- elif show_source and has_source and sourcename -%}
     {{ pathto('_sources/' + sourcename, true) }}
   {%- endif -%}
 {%- endmacro -%}
 
 
-{%- if page_source_suffix -%}
-  {%- set can_find_view_link = (
-    (theme_source_view_link and pagename)
-    or (show_source and has_source and sourcename)
-    or (theme_source_repository and theme_source_branch)
-  ) -%}
-  {%- if can_find_view_link -%}
-    {%- block link_available -%}
-    <a href="{{ determine_page_view_link() }}">{{ _("View sources") }}</a>
-    {%- endblock link_available -%}
-  {%- else -%}
-    {%- block link_not_available -%}{%- endblock -%}
-  {%- endif -%}
+{%- set can_find_view_link = (
+  (theme_source_view_link and pagename and page_source_suffix)
+  or (theme_source_repository and theme_source_branch and page_source_suffix)
+  or (show_source and has_source and sourcename)
+) -%}
+{%- if can_find_view_link -%}
+  {%- block link_available -%}
+  <a href="{{ determine_page_view_link() }}">{{ _("View sources") }}</a>
+  {%- endblock link_available -%}
+{%- else -%}
+  {%- block link_not_available -%}{%- endblock -%}
 {%- endif -%}
